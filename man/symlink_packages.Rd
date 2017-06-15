@@ -2,12 +2,12 @@
 % Please edit documentation in R/ratpack.R
 \name{symlink_packages}
 \alias{symlink_packages}
-\title{Links installed packages to your packrat directory}
+\title{Links installed packages to your new, empty, packrat directory}
 \usage{
 symlink_packages()
 }
 \description{
-Links installed packages to your packrat directory
+Links installed packages to your new, empty, packrat directory
 }
 \examples{
 symlink_packages()
