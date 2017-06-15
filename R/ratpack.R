@@ -1,4 +1,4 @@
-#' Links installed packages to your new, empty, packrat directory
+#' Symlink installed packages to your new, empty, packrat directory
 #'
 #' @return NULL
 #' @export symlink_packages
@@ -13,14 +13,6 @@ symlink_packages <- function(){
     stop('Packrat is not turned on, this function must be run in a packrat project')
   }
 
-
-  #Grab the lists from a fresh user R session, so it'll work within a packrat
-  original_dir <-
-    "R  --slave --no-init-file -e \"cat(.libPaths())\""
-  list_of_libs<-
-    system(original_dir, intern=TRUE)
-  list_of_libs<-
-    unlist(strsplit(list_of_libs, split = ' '))
 
   #Work out the current packrat lib
   #Code from packrat package:
@@ -43,12 +35,7 @@ symlink_packages <- function(){
   target_lib<-
     getPackratLibDir(projDir = .rs.getProjectDirectory())
 
-  user_packages<-
-    utils::installed.packages(list_of_libs)[is.na(utils::installed.packages(list_of_libs)[,"Priority"]),]
-
-  #Dont include packrat, or it will fail!
-  user_packages<-
-    user_packages[!user_packages[,'Package']=='packrat',]
+  user_packages <- get_user_packages()
 
   for (pkg in 1:nrow(user_packages)) {
     r_path <-user_packages[pkg,'LibPath']
@@ -66,3 +53,58 @@ symlink_packages <- function(){
 
   }
 }
+
+#' returns users packages from outside the packrat library
+#'
+#' @return users installed packages
+#' @export get_user_packages
+#'
+#' @examples get_user_packages()
+get_user_packages <- function(){
+  #Grab the lists from a fresh user R session, so it'll work within a packrat
+  original_dir <-
+    "R  --slave --no-init-file -e \"cat(.libPaths())\""
+  list_of_libs<-
+    system(original_dir, intern=TRUE)
+  list_of_libs<-
+    unlist(strsplit(list_of_libs, split = ' '))
+
+  user_packages<-
+    utils::installed.packages(list_of_libs)[is.na(utils::installed.packages(list_of_libs)[,"Priority"]),]
+
+  #Dont include packrat, or it will fail!
+  user_packages<-
+    user_packages[!user_packages[,'Package']=='packrat',]
+
+  #Don't include duplicates.
+  #This should priorities user installed packages, as the order goes
+  #User, site, system for .libPath
+  user_packages<-
+    user_packages[!duplicated(user_packages[,'Package']),]
+}
+
+
+#' Add users installed packages to the external.packages option of packrat
+#'
+#'
+#' @export import_user_packages
+#'
+#' @examples import_user_packages()
+import_user_packages <- function(){
+  #Fail if it isn't in a packrat project
+  if(packrat:::isPackratModeOn()==FALSE){
+    stop('Packrat is not turned on, this function must be run in a packrat project')
+  }
+
+  u_p<-get_user_packages()
+  u_p<-row.names(u_p)
+  u_p_string <- paste(u_p, collapse=",")
+
+  do.call(packrat::set_opts,
+          args=list(external.packages=u_p_string))
+
+
+  writeLines(paste(u_p, collapse = '\n'))
+  warning('^ The above packages were added to packrat\'s external packages')
+
+  }
