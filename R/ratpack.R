@@ -58,6 +58,8 @@ symlink_packages <- function(){
     message('---------------------')
 
   }
+
+  message('Once you\'re done developing run packrat::clean(); packrat::snapshot()')
 }
 
 #' returns users packages from outside the packrat library
@@ -91,7 +93,8 @@ get_user_packages <- function(){
 
 
 #' Add users installed packages to the external.packages option of packrat
-#'
+#' This means that package sources wont be included in the packrat, so best
+#' to run packrat::set_opts(external.packages=NULL) before packrat::snapshot
 #'
 #' @export import_user_packages
 #'
@@ -111,6 +114,6 @@ import_user_packages <- function(){
 
 
   writeLines(paste(u_p, collapse = '\n'))
-  warning('^ The above packages were added to packrat\'s external packages')
+  message('^ The above packages were added to packrat\'s external packages')
 
   }
