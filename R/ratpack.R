@@ -37,6 +37,12 @@ symlink_packages <- function(){
 
   user_packages <- get_user_packages()
 
+  #Don't include duplicates.
+  #This should priorities user installed packages, as the order goes
+  #User, site, system for .libPath
+  user_packages<-
+    user_packages[!duplicated(user_packages[,'Package']),]
+
   for (pkg in 1:nrow(user_packages)) {
     r_path <-user_packages[pkg,'LibPath']
     r_name <- user_packages[pkg,'Package']
